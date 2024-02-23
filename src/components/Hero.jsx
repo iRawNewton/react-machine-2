@@ -1,4 +1,4 @@
-import React, { useRef } from "react";
+import React, { useRef, useState } from "react";
 import { useGSAP } from "@gsap/react";
 import gsap from "gsap";
 import { FaChevronLeft, FaChevronRight } from "react-icons/fa6";
@@ -15,39 +15,43 @@ const Hero = () => {
   const firstDivRef = useRef(null);
   const secondDivRef = useRef(null);
 
-  useGSAP((context, contextSafe) => {
-    // <-- there it is
+  const [isFirstDivVisible, setIsFirstDivVisible] = useState(true);
 
-    // ✅ safe, wrapped in contextSafe() function and we remove the event listener in the cleanup function below. 👍
+  useGSAP((context, contextSafe) => {
     const onClickGood = contextSafe(() => {
+      const tl = gsap.timeline();
       gsap.to(bgref.current, { opacity: 0 });
       gsap.to(bgref2.current, { opacity: 1 });
       gsap.to(headset1Ref.current, { x: -400, y: 400, opacity: 0 });
       gsap.from(headsetRef2.current, { opacity: 0, x: 400, y: -400 });
       gsap.to(headsetRef2.current, { opacity: 1 }); // Set opacity after other animations
-      gsap.to(firstDivRef.current, {
-        y: -500,
+
+      // Fade in the secondDivRef from the bottom
+      tl.to(firstDivRef.current, {
+        y: -300,
         opacity: 0,
-        onComplete: () => {
-          firstDivRef.current.style.display = "none"; // Hide first div after animation
-        },
-      });
-      secondDivRef.current.style.display = "flex"; // Show second div
+        onComplete: () => setIsFirstDivVisible(false),
+      }).from(secondDivRef.current, { opacity: 0, y: 50 });
     });
+
     buttonRef.current.addEventListener("click", onClickGood);
     buttonRef2.current.addEventListener("click", onClickGood);
 
     return () => {
-      // <-- cleanup (remove listeners here)
       buttonRef.current.removeEventListener("click", onClickGood);
       buttonRef2.current.removeEventListener("click", onClickGood);
     };
   });
 
   return (
-    <div className="max-w-[1639px] mx-auto bg-white px-5 grid grid-cols-2">
-      <div className="flex flex-col justify-center gap-5">
-        <div className="flex flex-col justify-center gap-5" ref={firstDivRef}>
+    <div className="max-w-[1639px] mx-auto bg-white px-5 grid grid-cols-2 my-56">
+      <div className="relative flex flex-col justify-center gap-5 h-[600px]">
+        <div
+          className={`flex flex-col justify-center gap-5 h-[500px] ${
+            isFirstDivVisible ? "" : "hidden"
+          }`}
+          ref={firstDivRef}
+        >
           <img
             src="/dbPulse.png"
             alt="DB Pulse"
@@ -72,7 +76,9 @@ const Hero = () => {
         </div>
 
         <div
-          className="flex-col justify-center gap-5 hidden"
+          className={`flex-col justify-center gap-5 h-[500px] ${
+            isFirstDivVisible ? "hidden" : ""
+          }`}
           ref={secondDivRef}
         >
           <img
@@ -103,7 +109,9 @@ const Hero = () => {
         </button>
       </div>
 
-      <div className="flex relative items-center justify-center">
+      {/* Right */}
+
+      <div className="flex relative items-center justify-center h-[600px]">
         <img
           ref={bgref}
           src="/design.png"
@@ -120,13 +128,13 @@ const Hero = () => {
           ref={headset1Ref}
           src="/headset.png"
           alt="Head phone"
-          className="absolute h-[415px] object-contain top-7"
+          className="absolute h-[515px] object-contain -top-20"
         />
         <img
           ref={headsetRef2}
           src="/headset2.png"
           alt="Head phone"
-          className="absolute h-[415px] object-contain top-7 opacity-0"
+          className="absolute h-[515px] object-contain -top-20 opacity-0"
         />
         <div className="absolute bottom-1 right-10 space-x-5">
           <button
